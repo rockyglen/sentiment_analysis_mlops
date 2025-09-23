@@ -1,5 +1,5 @@
 import pandas as pd
-from dvc.api import get_url
+
 import logging
 import mlflow
 import mlflow.sklearn
