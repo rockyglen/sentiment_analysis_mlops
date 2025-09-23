@@ -23,6 +23,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: your_dockerhub_username/sentiment-api:latest
+          tags: rockyglen/sentiment-api:latest
           # A good practice is to also tag with the commit hash for versioning
           # tags: your_dockerhub_username/sentiment-api:latest, your_dockerhub_username/sentiment-api:${{ github.sha }}
