@@ -1,58 +1,76 @@
 import pandas as pd
-import re
-import string
-import logging
+import matplotlib.pyplot as plt
+import seaborn as sns
 from dvc.api import get_url
+import logging
 
-# Set up logging for better tracking
+# Set up logging for better tracking of script execution
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
-def preprocess_text(text):
+def perform_eda():
     """
-    Cleans and preprocesses a single text string.
-    """
-    # 1. Lowercase all text
-    text = text.lower()
-
-    # 2. Remove HTML tags like '<br />'
-    text = re.sub("<br />", "", text)
-
-    # 3. Remove punctuation
-    text = text.translate(str.maketrans("", "", string.punctuation))
-
-    # 4. Remove extra whitespace
-    text = text.strip()
-
-    return text
-
-
-def preprocess_and_save_data():
-    """
-    Loads raw data, applies preprocessing, and saves the cleaned data.
+    Performs Exploratory Data Analysis on the IMDB movie review dataset.
+    This includes checking data structure, class distribution, and review length.
     """
     try:
-        logging.info("Starting data preprocessing...")
+        logging.info("Starting EDA process...")
 
-        # Load the raw dataset from DVC
+        # Get the URL of the DVC-tracked dataset to ensure reproducibility
         data_url = get_url("data/IMDB_Dataset.csv")
+
+        # Load the dataset into a pandas DataFrame
         df = pd.read_csv(data_url)
-        logging.info("Raw dataset loaded successfully.")
+        logging.info("Dataset loaded successfully.")
 
-        # --- Apply Preprocessing to the 'review' column ---
-        logging.info("Applying text preprocessing to the review column...")
-        df["review"] = df["review"].apply(preprocess_text)
+        # --- Initial Data Exploration ---
+        logging.info("Displaying initial data info...")
+        print("First 5 rows of the dataset:")
+        print(df.head())
+        print("\nDataset information:")
+        print(df.info())
+        print("\nMissing values:")
+        print(df.isnull().sum())
 
-        # --- Save the Cleaned Data ---
-        output_path = "data/processed_reviews.csv"
-        df.to_csv(output_path, index=False)
-        logging.info(f"Processed data saved to {output_path}")
+        # --- Analysis of Sentiment Distribution ---
+        logging.info("Analyzing sentiment distribution...")
+        plt.figure(figsize=(8, 6))
+        sns.countplot(x="sentiment", data=df)
+        plt.title("Distribution of Sentiment Labels", fontsize=16)
+        plt.xlabel("Sentiment", fontsize=12)
+        plt.ylabel("Count", fontsize=12)
+        plt.savefig("eda_sentiment_distribution.png")
+        logging.info(
+            "Saved sentiment distribution plot to 'eda_sentiment_distribution.png'"
+        )
+        plt.show()
+
+        # --- Analysis of Review Length ---
+        logging.info("Analyzing review length distribution...")
+        df["review_length"] = df["review"].apply(lambda x: len(x.split()))
+
+        plt.figure(figsize=(12, 7))
+        sns.histplot(df["review_length"], bins=50, kde=True, color="skyblue")
+        plt.title("Distribution of Review Lengths", fontsize=16)
+        plt.xlabel("Number of Words", fontsize=12)
+        plt.ylabel("Frequency", fontsize=12)
+        plt.savefig("eda_review_length_distribution.png")
+        logging.info(
+            "Saved review length distribution plot to 'eda_review_length_distribution.png'"
+        )
+        plt.show()
+
+        # Display summary statistics for review length
+        logging.info("Review length summary statistics:")
+        print(df["review_length"].describe())
+
+        logging.info("EDA process completed.")
 
     except Exception as e:
-        logging.error(f"An error occurred during preprocessing: {e}")
+        logging.error(f"An error occurred during EDA: {e}")
 
 
 if __name__ == "__main__":
-    preprocess_and_save_data()
+    perform_eda()

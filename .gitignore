@@ -1,0 +1,21 @@
+# DVC cache directory
+.dvc/cache/
+
+# Data files (they are tracked by DVC, not Git)
+data/*.csv
+data/*.json
+data/*.parquet
+
+# Python bytecode and virtual environment
+__pycache__/
+*.pyc
+.env
+venv/
+
+# MLflow
+mlruns/
+mlruns/artifacts/
+
+# Operating System files
+.DS_Store
+Thumbs.db
