@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project code into the container
 COPY . .
 
+# Create a log directory and set permissions
+RUN mkdir -p /var/log/app && chmod -R 777 /var/log/app
+
 # Expose the port on which the API will run
 EXPOSE 8000
 

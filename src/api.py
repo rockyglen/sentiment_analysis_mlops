@@ -1,17 +1,30 @@
 import joblib
-from fastapi import FastAPI
+import uuid
+import os
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 import logging
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+from time import time
 
 
 # Define a data model for the input text
 class TextInput(BaseModel):
     text: str
+
+
+# Configure logging to write to a file
+log_file_path = "/var/log/app/app.log"
+os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_file_path),
+        logging.StreamHandler(),  # Also prints to console for debugging
+    ],
+)
+logger = logging.getLogger("sentiment-api")
+logger.info("Logger configured successfully.")
 
 
 # Initialize the FastAPI application
@@ -40,30 +53,42 @@ def preprocess_text(text: str) -> str:
 
 # Define the prediction endpoint
 @app.post("/predict_sentiment/")
-def predict_sentiment(item: TextInput):
+def predict_sentiment(item: TextInput, request: Request):
     """
-    Predicts the sentiment of a given text review.
+    Predicts the sentiment of a given text review with detailed logging.
     """
+    request_id = str(uuid.uuid4())
+    start_time = time()
+
     try:
-        # 1. Preprocess the input text
+        # Preprocessing function (needs to be the same as in the training script)
+        # Assuming you've already defined preprocess_text()
         preprocessed_text = preprocess_text(item.text)
 
-        # 2. Vectorize the preprocessed text
-        # Note: The vectorizer.transform() method expects a list of strings
+        # Vectorize the preprocessed text
         vectorized_text = vectorizer.transform([preprocessed_text])
 
-        # 3. Make the prediction
+        # Make the prediction
         prediction = model.predict(vectorized_text)
-
-        # 4. Map the numerical prediction to a human-readable label
         sentiment = "positive" if prediction[0] == 1 else "negative"
 
-        logging.info(f"Prediction for '{item.text}': {sentiment}")
+        # Calculate latency
+        latency = (time() - start_time) * 1000  # in milliseconds
+
+        # Log the prediction details
+        logger.info(
+            f"request_id={request_id}, status=success, latency={latency:.2f}ms, "
+            f"input_text='{item.text}', prediction={sentiment}"
+        )
 
         return {"sentiment": sentiment}
 
     except Exception as e:
-        logging.error(f"Prediction error: {e}")
+        latency = (time() - start_time) * 1000
+        logger.error(
+            f"request_id={request_id}, status=failure, latency={latency:.2f}ms, "
+            f"error_message={str(e)}"
+        )
         return {"error": "An error occurred during prediction."}
 
 
