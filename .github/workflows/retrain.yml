@@ -1,0 +1,45 @@
+name: Retrain Model
+
+on:
+  workflow_dispatch:
+
+jobs:
+  retrain_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run data preprocessing script
+        run: |
+          python src/preprocess_data.py
+
+      - name: Run training script
+        run: |
+          python src/train_model.py
+      
+      - name: Build and push new Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: your_dockerhub_username/sentiment-api:latest
+      
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USERNAME }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ec2-user
+            ./deploy.sh
