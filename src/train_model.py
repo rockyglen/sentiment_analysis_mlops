@@ -1,13 +1,12 @@
 import pandas as pd
-
-import logging
+import joblib
 import mlflow
 import mlflow.sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
-import joblib
+import logging
 
 # Set up logging for better script tracking
 logging.basicConfig(
@@ -23,9 +22,10 @@ def train_and_log_model():
     try:
         logging.info("Starting model training and logging process...")
 
-        # --- Load Processed Data (from DVC) ---
+        # --- Load Processed Data (from file) ---
         logging.info("Loading preprocessed data...")
         df = pd.read_csv("data/processed_reviews.csv")
+        logging.info("Preprocessed data loaded successfully.")
 
         # --- Prepare Data for Modeling ---
         X = df["review"]
@@ -82,23 +82,13 @@ def train_and_log_model():
 
             # --- Log Model Artifacts ---
             logging.info("Logging model artifact to MLflow...")
-            # Use a wrapper to save both the model and vectorizer
-            artifacts_path = "model_artifacts"
-            mlflow.sklearn.log_model(sk_model=model, artifact_path=artifacts_path)
+            joblib.dump(model, "models/sentiment_model.joblib")
+            joblib.dump(vectorizer, "models/tfidf_vectorizer.joblib")
 
-            # Note: For real production, you'd also save the vectorizer separately
-            # as it's needed for inference. We'll handle this in a later step.
-
-        logging.info("Model training and logging complete.")
+            logging.info("Model and vectorizer saved to 'models/' directory.")
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-
-    # Log model artifacts to local disk
-    joblib.dump(model, "models/sentiment_model.joblib")
-    joblib.dump(vectorizer, "models/tfidf_vectorizer.joblib")
-
-    logging.info("Model and vectorizer saved to 'models/' directory.")
 
 
 if __name__ == "__main__":
