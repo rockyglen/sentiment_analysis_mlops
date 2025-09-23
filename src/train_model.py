@@ -25,8 +25,7 @@ def train_and_log_model():
 
         # --- Load Processed Data (from DVC) ---
         logging.info("Loading preprocessed data...")
-        df = pd.read_csv(("data/processed_reviews.csv")
-        
+        df = pd.read_csv("data/processed_reviews.csv")
 
         # --- Prepare Data for Modeling ---
         X = df["review"]
