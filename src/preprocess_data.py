@@ -2,7 +2,7 @@ import pandas as pd
 import re
 import string
 import logging
-from dvc.api import get_url
+
 
 # Set up logging for better tracking
 logging.basicConfig(
@@ -37,8 +37,8 @@ def preprocess_and_save_data():
         logging.info("Starting data preprocessing...")
 
         # Load the raw dataset from DVC
-        data_url = get_url("data/IMDB_Dataset.csv")
-        df = pd.read_csv(data_url)
+        df = pd.read_csv("data/IMDB_Dataset.csv")
+
         logging.info("Raw dataset loaded successfully.")
 
         # --- Apply Preprocessing to the 'review' column ---
