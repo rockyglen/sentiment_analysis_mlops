@@ -28,7 +28,7 @@ def train_and_log_model():
         logging.info("Preprocessed data loaded successfully.")
 
         # --- Prepare Data for Modeling ---
-        X = df["clean_review"]
+        X = df["review"]
         y = df["sentiment"].apply(lambda x: 1 if x == "positive" else 0)
 
         # Split data into training and testing sets
